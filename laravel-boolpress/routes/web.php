@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\TextUI\XmlConfiguration\Group;
@@ -14,8 +15,9 @@ use PHPUnit\TextUI\XmlConfiguration\Group;
 |
 */
 
-Route::get('/', 'HomeController@index');
+Route::get('/', 'HomeController@index')->name('index');
 Route::get('/posts', 'PostController@index')->name('posts.index');
+Route::get('/posts/{slug}', "PostController@show")->name("posts.show");
 
 Auth::routes();
 
@@ -26,6 +28,7 @@ Route::prefix('admin')
     ->middleware('auth')
     ->name('admin.')
     ->group(function() {
-        Route::get('/', 'Homecontroller@index')->name('home');
-        Route::get('/posts', 'PostController@index');
+        Route::get('/', 'Homecontroller@index')->name('index');
+        // Route::get('/posts', 'PostController@index');
+        Route::resource("/posts", "PostController");
     });

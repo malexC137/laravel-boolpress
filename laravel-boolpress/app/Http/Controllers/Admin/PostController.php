@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -13,8 +16,13 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $data = [
+            'posts' => Post::orderBy("created_at", "DESC")->get()
+        ];
+
+        return view("admin.posts.index", $data);
     }
+    
 
     /**
      * Show the form for creating a new resource.
@@ -23,7 +31,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view("admin.posts.create");
     }
 
     /**
@@ -34,7 +42,37 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|max:255',
+            'content' => 'required',
+        ]);
+        $formData = $request->all();
+        $newPost = new Post();
+        $newPost->fill($formData);
+
+        // genero lo slug
+        $slug = Str::slug($newPost->title);
+        $slugBase = $slug;
+
+        // verifico che lo slug non esista nel database
+        $postExists = Post::where('slug', $slug)->first();
+        $contatore = 1;
+
+        // entro nel ciclo while se ho trovato un post con lo stesso $slug
+        while ($postExists) {
+            // genero un nuovo slug aggiungendo il contatore alla fine
+            $slug = $slugBase . '-' . $contatore;
+            $contatore++;
+            $postExists = Post::where('slug', $slug)->first();
+        }
+
+        // quando esco dal while sono sicuro che lo slug non esiste nel db
+        // assegno lo slug al post
+        $newPost->slug = $slug;
+
+        $newPost->save();
+        return redirect()->route('admin.posts.index');
+
     }
 
     /**
@@ -43,9 +81,11 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        //
+        return view('admin.posts.show', [
+            "post" => $post
+        ]);
     }
 
     /**
@@ -54,9 +94,13 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
-        //
+        $data = [
+            'post' => $post
+        ];
+
+        return view('admin.posts.edit', $data);
     }
 
     /**
@@ -66,9 +110,36 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'title' => 'required|max:255',
+            'content' => 'required'
+        ]);
+
+        $formData = $request->all();
+
+        if ($formData['title'] != $post->title) {
+            
+            $slug = Str::slug($formData['title']);
+            $slugBase = $slug;
+            
+            $postExists = Post::where('slug', $slug)->first();
+            $contatore = 1;
+            
+            while ($postExists) {
+                
+                $slug = $slugBase . '-' . $contatore;
+                $contatore++;
+                $postExists = Post::where('slug', $slug)->first();
+            }
+            
+            $formData['slug'] = $slug;
+        }
+
+        $post->update($formData);
+
+        return redirect()->route('admin.posts.index');
     }
 
     /**
@@ -77,8 +148,8 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        //
+    public function destroy(Post $post) {
+        $post->delete();
+        return redirect()->route('admin.posts.index');
     }
 }
