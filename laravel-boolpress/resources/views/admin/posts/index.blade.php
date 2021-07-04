@@ -17,6 +17,7 @@
                         <th>Titolo</th>
                         <th>Slug</th>
                         <th>Categoria</th>
+                        <th>Utente</th>
                         <th class="text-center">Azioni</th>
                     </tr>
                     </thead>
@@ -27,6 +28,7 @@
                             <td>{{ $post->title }}</td>
                             <td>{{ $post->slug }}</td>
                             <td>{{ $post->category ? $post->category->name : '-' }}</td>
+                            <td>{{ $post->user->name }}</td>
                             <td>
                                 <a class="btn btn-info btn-sm" href="{{ route('admin.posts.show', ['post' => $post->id ]) }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Category;
 use App\Http\Controllers\Controller;
 use App\Post;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class PostController extends Controller
@@ -31,7 +34,9 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view("admin.posts.create");
+        $categories = Category::all();
+
+        return view("admin.posts.create", ["categories" => $categories]);
     }
 
     /**
@@ -49,6 +54,8 @@ class PostController extends Controller
         $formData = $request->all();
         $newPost = new Post();
         $newPost->fill($formData);
+
+        $newPost->user_id = $request->user()->id;
 
         // genero lo slug
         $slug = Str::slug($newPost->title);
@@ -96,8 +103,11 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
+        $categories = Category::all();
+
         $data = [
-            'post' => $post
+            'post' => $post,
+            'categories' => $categories
         ];
 
         return view('admin.posts.edit', $data);

@@ -19,7 +19,8 @@
                     <dd>{{ $post->content }}</dd>
                     <dt>Categoria</dt>
                     <dd>{{ $post->category ? $post->category->name : '-' }}</dd>
-
+                    <dt>Utente</dt>
+                    <dd>{{ $post->user->name }} ({{ $post->user->email }})</dd>
                 </dl>
                 <a href="{{ route('admin.posts.edit', ['post' => $post->id]) }}"
                    class="btn btn-warning">
