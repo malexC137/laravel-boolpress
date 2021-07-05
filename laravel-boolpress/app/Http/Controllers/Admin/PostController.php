@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Category;
 use App\Http\Controllers\Controller;
 use App\Post;
+use App\Tag;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,12 +18,20 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = [
-            'posts' => Post::orderBy("created_at", "DESC")->get()
-        ];
+        $incomingData = $request->all();
 
+        if (key_exists("posts", $incomingData)) {
+            $data = $incomingData["posts"];
+        } else {
+            $data = [
+                'posts' => Post::orderBy("created_at", "DESC")
+                ->where("user_id", $request->user()->id)
+                ->get()
+            ];
+        }
+        
         return view("admin.posts.index", $data);
     }
     
@@ -104,10 +113,12 @@ class PostController extends Controller
     public function edit(Post $post)
     {
         $categories = Category::all();
+        $tags = Tag::all();
 
         $data = [
             'post' => $post,
-            'categories' => $categories
+            'categories' => $categories,
+            'tags' => $tags
         ];
 
         return view('admin.posts.edit', $data);
@@ -124,7 +135,9 @@ class PostController extends Controller
     {
         $request->validate([
             'title' => 'required|max:255',
-            'content' => 'required'
+            'content' => 'required',
+            'category_id' => "nullable|exists:categories,id",
+            'tags' => "exists:tags,id"
         ]);
 
         $formData = $request->all();
@@ -147,6 +160,9 @@ class PostController extends Controller
             $formData['slug'] = $slug;
         }
 
+        $post->tags()->detach();
+        $post->tags()->attach($formData['tags']);
+
         $post->update($formData);
 
         return redirect()->route('admin.posts.index');
@@ -161,5 +177,15 @@ class PostController extends Controller
     public function destroy(Post $post) {
         $post->delete();
         return redirect()->route('admin.posts.index');
+    }
+
+    public function filter(Request $request) {
+        $filters = $request->all();
+
+        $posts = Post::with(["tag" => function ($query) use ($filters) {
+            $query->where("id", $filters["tag"]);
+        }])->get();
+
+        return redirect()->route("admin.posts.index")->with(["posts" => $posts]);
     }
 }

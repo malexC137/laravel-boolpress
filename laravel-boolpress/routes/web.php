@@ -29,6 +29,10 @@ Route::prefix('admin')
     ->name('admin.')
     ->group(function() {
         Route::get('/', 'Homecontroller@index')->name('index');
+        Route::get('/categories', 'CategoryController@index')->name('categories.index');
+        Route::get('/tags', 'TagController@index')->name('tags.index');
         // Route::get('/posts', 'PostController@index');
+        Route::get("/post/filter", "PostController@filter")->name("posts.filter");
         Route::resource("/posts", "PostController");
+        Route::resource("/users", "UserController");
     });
