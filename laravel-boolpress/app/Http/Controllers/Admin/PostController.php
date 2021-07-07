@@ -20,10 +20,12 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
-        $incomingData = $request->all();
+        $incomingData = session("posts");
 
-        if (key_exists("posts", $incomingData)) {
-            $data = $incomingData["posts"];
+        if (isset($incomingData)) {
+            $data =  [
+                "posts" => $incomingData
+            ];
         } else {
             $data = [
                 'posts' => Post::orderBy("created_at", "DESC")
@@ -182,9 +184,11 @@ class PostController extends Controller
     public function filter(Request $request) {
         $filters = $request->all();
 
-        $posts = Post::with(["tag" => function ($query) use ($filters) {
-            $query->where("id", $filters["tag"]);
-        }])->get();
+        // $posts = Post::with(["tag" => function ($query) use ($filters) {
+        //     $query->where("id", 2);
+        // }])->get();
+
+        $posts = Post::join("post_tag", "post_id", "=", "post_tag.post_id")->where("post_tag.tag_id", $filters["tag"])->get();
 
         return redirect()->route("admin.posts.index")->with(["posts" => $posts]);
     }
