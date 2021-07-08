@@ -29,6 +29,10 @@
                 @method('PUT')
 
                 <div class="form-group">
+                    <label>Immagine di copertina</label>
+                    <input type="file" name="postCover" accept=".jpg,.png" class="form-control-file">
+                </div>
+                <div class="form-group">
                     <label>Titolo</label>
                     <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" placeholder="Inserisci il titolo" value="{{ old('title', $post->title) }}" required>
                     @error('title')

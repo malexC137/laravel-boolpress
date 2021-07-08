@@ -9,6 +9,7 @@ use App\Tag;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PostController extends Controller
@@ -29,14 +30,14 @@ class PostController extends Controller
         } else {
             $data = [
                 'posts' => Post::orderBy("created_at", "DESC")
-                ->where("user_id", $request->user()->id)
-                ->get()
+                    ->where("user_id", $request->user()->id)
+                    ->get()
             ];
         }
-        
+
         return view("admin.posts.index", $data);
     }
-    
+
 
     /**
      * Show the form for creating a new resource.
@@ -90,7 +91,6 @@ class PostController extends Controller
 
         $newPost->save();
         return redirect()->route('admin.posts.index');
-
     }
 
     /**
@@ -145,28 +145,38 @@ class PostController extends Controller
         $formData = $request->all();
 
         if ($formData['title'] != $post->title) {
-            
+
             $slug = Str::slug($formData['title']);
             $slugBase = $slug;
-            
+
             $postExists = Post::where('slug', $slug)->first();
             $contatore = 1;
-            
+
             while ($postExists) {
-                
+
                 $slug = $slugBase . '-' . $contatore;
                 $contatore++;
                 $postExists = Post::where('slug', $slug)->first();
             }
-            
+
             $formData['slug'] = $slug;
         }
 
         $post->tags()->detach();
         $post->tags()->attach($formData['tags']);
 
-        $post->update($formData);
+        if (key_exists("postCover", $formData)) {
+            if ($post->cover_url) {
+                Storage::delete($post->cover_url);
+            }
 
+            $storageResult = Storage::put("postCovers", $formData["postCover"]);
+
+            $formData["cover_url"] = $storageResult;
+        }
+
+
+        $post->update($formData);
         return redirect()->route('admin.posts.index');
     }
 
@@ -176,12 +186,14 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Post $post) {
+    public function destroy(Post $post)
+    {
         $post->delete();
         return redirect()->route('admin.posts.index');
     }
 
-    public function filter(Request $request) {
+    public function filter(Request $request)
+    {
         $filters = $request->all();
 
         // $posts = Post::with(["tag" => function ($query) use ($filters) {

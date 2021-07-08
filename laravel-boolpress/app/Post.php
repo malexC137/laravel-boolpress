@@ -10,7 +10,8 @@ class Post extends Model
         "title",
         "content",
         "category_id",
-        "slug"
+        "slug",
+        "cover_url"
     ];
 
     public function user()
