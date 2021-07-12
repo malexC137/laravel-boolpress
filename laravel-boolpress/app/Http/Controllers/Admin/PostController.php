@@ -6,6 +6,7 @@ use App\Category;
 use App\Http\Controllers\Controller;
 use App\Post;
 use App\Tag;
+use Carbon\Carbon;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,16 @@ class PostController extends Controller
                     ->where("user_id", $request->user()->id)
                     ->get()
             ];
+        }
+
+        foreach ($data["posts"] as $post) {
+            $date = $post->created_at;
+
+            $carbonDate = Carbon::parse($date);
+
+            $formattedDate = $carbonDate->format("d/m/y h:i:s");
+
+            $post->formattedCreatedAt = $formattedDate;
         }
 
         return view("admin.posts.index", $data);
